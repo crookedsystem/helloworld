@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: StatefulSet
+
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+
+spec:
+  # StatefulSet Pod의 네트워크 식별성을 관리하는 Headless Service
+  serviceName: postgres-headless
+
+  # PostgreSQL 인스턴스 1개 실행
+  #
+  # 주의: replicas를 2 이상으로 변경한다고
+  # PostgreSQL 복제가 자동으로 구성되지는 않음
+  replicas: 1
+
+  # StatefulSet이 관리할 Pod 선택
+  selector:
+    matchLabels:
+      app: postgres
+
+  # PostgreSQL Pod 생성 템플릿
+  template:
+    metadata:
+      labels:
+        app: postgres
+
+    spec:
+      containers:
+        - name: postgres
+
+          # PostgreSQL 공식 컨테이너 이미지
+          # 재현 가능한 실습을 위해 메이저 버전을 고정
+          image: postgres:17
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: postgres
+              containerPort: 5432
+
+          # 공식 PostgreSQL 이미지에서 사용하는 초기화 설정
+          env:
+            # 최초 DB 생성 시 사용할 사용자
+            - name: POSTGRES_USER
+              value: app
+
+            # 최초 생성할 데이터베이스
+            - name: POSTGRES_DB
+              value: appdb
+
+            # Secret에서 비밀번호를 가져옴
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-auth
+                  key: POSTGRES_PASSWORD
+
+            # PostgreSQL 데이터 디렉터리
+            # 볼륨 내부에 별도 디렉터리를 만들어 사용
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+          # PostgreSQL이 연결을 받을 준비가 됐는지 검사
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U app -d appdb
+            initialDelaySeconds: 5
+            periodSeconds: 5
+
+          # 컨테이너 리소스 사용 요청 및 제한
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+
+          # PostgreSQL 데이터 디렉터리에 PVC 연결
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+
+  # StatefulSet이 Pod별 PVC를 자동 생성
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+
+        # k3s에 기본 제공되는 로컬 스토리지
+        storageClassName: local-path
+
+        resources:
+          requests:
+            storage: 5Gi

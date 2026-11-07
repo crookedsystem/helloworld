@@ -39,3 +39,6 @@ out/
 ### Gradle Wrapper ###
 gradlew
 gradlew.bat
+
+### Secrets ###
+**/.env
