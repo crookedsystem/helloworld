@@ -1,0 +1,59 @@
+[1;36m$ cat > infra/environments/local/platform.yaml <<EOF
+# 여러 Chart에서 공유하는 환경 설정
+global:
+  database:
+    host: postgres
+    port: 5432
+    name: appdb
+    username: app
+
+    # 기존 Kubernetes Secret 재사용
+    existingSecret: postgres-auth
+    passwordKey: POSTGRES_PASSWORD
+EOF
+cat > infra/environments/local/backend.yaml <<EOF
+replicaCount: 1
+
+image:
+  repository: k3s-demo-backend
+  tag: v3
+  pullPolicy: Never
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+EOF
+cat > infra/environments/local/postgres.yaml <<EOF
+replicaCount: 1
+
+image:
+  repository: postgres
+  tag: "17"
+  pullPolicy: IfNotPresent
+
+persistence:
+  storageClass: local-path
+  accessMode: ReadWriteOnce
+  size: 5Gi
+EOF[0m
+[0;90m(exit 0)[0m
+
+[1;36m$ for f in infra/environments/local/*.yaml; do echo "== $f"; python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1])); print(\"yaml ok\")" $f; done[0m
+== infra/environments/local/backend.yaml
+yaml ok
+== infra/environments/local/platform.yaml
+yaml ok
+== infra/environments/local/postgres.yaml
+yaml ok
+[0;90m(exit 0)[0m
+
+[1;36m$ git status --short infra[0m
+ M infra/environments/local/backend.yaml
+?? infra/environments/local/platform.yaml
+?? infra/environments/local/postgres.yaml
+[0;90m(exit 0)[0m
+
