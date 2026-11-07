@@ -1,0 +1,38 @@
+# StatefulSet Pod의 안정적인 DNS를 위한 Headless Service
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: postgres-headless
+
+spec:
+  clusterIP: None
+
+  selector:
+    app: postgres
+
+  ports:
+    - name: postgres
+      port: {{ .Values.service.port }}
+      targetPort: 5432
+      protocol: TCP
+
+---
+# Spring Boot에서 접근할 일반 Service
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: postgres
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app: postgres
+
+  ports:
+    - name: postgres
+      port: {{ .Values.service.port }}
+      targetPort: 5432
+      protocol: TCP
