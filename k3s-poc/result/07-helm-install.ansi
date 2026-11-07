@@ -1,0 +1,21 @@
+[1;36m$ curl -fsSL -o /tmp/get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo bash /tmp/get_helm.sh[0m
+Downloading https://get.helm.sh/helm-v3.22.1-linux-amd64.tar.gz
+Verifying checksum... Done.
+Preparing to install helm into /usr/local/bin
+helm installed into /usr/local/bin/helm
+[0;90m(exit 0)[0m
+[1;36m$ helm version[0m
+version.BuildInfo{Version:"v3.22.1", GitCommit:"d6c1a0e4027caa6abc7892e7ea9f0cda7447baa3", GitTreeState:"clean", GoVersion:"go1.26.9"}
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml list -A[0m
+NAME           	NAMESPACE  	REVISION	UPDATED                                	STATUS  	CHART                        	APP VERSION
+gateway-api-crd	kube-system	1       	2026-11-07 11:30:07.487448756 +0000 UTC	deployed	gateway-api-crd-1.6.301      	v1.6.3     
+traefik        	kube-system	1       	2026-11-07 11:30:09.56216953 +0000 UTC 	deployed	traefik-41.6.101+up41.6.1    	v3.7.13    
+traefik-crd    	kube-system	1       	2026-11-07 11:30:06.544423106 +0000 UTC	deployed	traefik-crd-41.6.101+up41.6.1	v3.7.1     
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get nodes[0m
+NAME         STATUS   ROLES           AGE    VERSION
+crookedbot   Ready    control-plane   159m   v1.37.2+k3s1
+[0;90m(exit 0)[0m
