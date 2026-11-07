@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  # Pod 1개 유지
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: k3s-demo-backend:v1
+          # 레지스트리에서 받지 않고 로컬 이미지만 사용
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
