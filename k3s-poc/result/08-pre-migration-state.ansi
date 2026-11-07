@@ -1,0 +1,35 @@
+[1;36m$ sudo k3s kubectl get deployment backend[0m
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+backend   1/1     1            1           122m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get statefulset postgres[0m
+NAME       READY   AGE
+postgres   1/1     104m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get svc backend postgres postgres-headless[0m
+NAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+backend             ClusterIP   10.43.244.68    <none>        80/TCP     122m
+postgres            ClusterIP   10.43.234.165   <none>        5432/TCP   77m
+postgres-headless   ClusterIP   None            <none>        5432/TCP   77m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pvc[0m
+NAME                       STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+postgres-data-postgres-0   Bound    pvc-ea59a811-2ac5-4bac-8ec1-b942bb32cfc5   5Gi        RWO            local-path     <unset>                 104m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get secret postgres-auth[0m
+NAME            TYPE     DATA   AGE
+postgres-auth   Opaque   1      107m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get sts postgres -o jsonpath='{.spec.serviceName}{"\n"}'[0m
+postgres-headless
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get sts postgres -o jsonpath='{.spec.volumeClaimTemplates[0].metadata.name}{"\n"}'[0m
+postgres-data
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pvc postgres-data-postgres-0 -o jsonpath='{.spec.storageClassName}{" "}{.spec.resources.requests.storage}{"\n"}'[0m
+local-path 5Gi
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pvc postgres-data-postgres-0 -o custom-columns=NAME:.metadata.name,UID:.metadata.uid,STATUS:.status.phase[0m
+NAME                       UID                                    STATUS
+postgres-data-postgres-0   ea59a811-2ac5-4bac-8ec1-b942bb32cfc5   Bound
+[0;90m(exit 0)[0m
