@@ -1,0 +1,52 @@
+[1;36m$ git diff -U0 infra/helm/backend/values-local.yaml | cat[0m
+diff --git a/k3s-poc/infra/helm/backend/values-local.yaml b/k3s-poc/infra/helm/backend/values-local.yaml
+index 5665ccc..8b19451 100644
+--- a/k3s-poc/infra/helm/backend/values-local.yaml
++++ b/k3s-poc/infra/helm/backend/values-local.yaml
+@@ -2 +2 @@
+-replicaCount: 1
++replicaCount: 2
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml upgrade backend ./infra/helm/backend -f ./infra/helm/backend/values-local.yaml --wait --timeout 180s[0m
+Release "backend" has been upgraded. Happy Helming!
+NAME: backend
+LAST DEPLOYED: Sat Nov  7 14:10:59 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pods -l app=backend[0m
+NAME                      READY   STATUS    RESTARTS   AGE
+backend-99cb554b4-nxv5p   1/1     Running   0          49m
+backend-99cb554b4-pnqlg   1/1     Running   0          16s
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get deployment backend[0m
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+backend   2/2     2            2           124m
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml history backend[0m
+REVISION	UPDATED                 	STATUS    	CHART        	APP VERSION	DESCRIPTION     
+1       	Sat Nov  7 14:10:32 2026	superseded	backend-0.1.0	0.0.1      	Install complete
+2       	Sat Nov  7 14:10:59 2026	deployed  	backend-0.1.0	0.0.1      	Upgrade complete
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml rollback backend 1 --wait[0m
+Rollback was a success! Happy Helming!
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get deployment backend[0m
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+backend   1/1     1            1           124m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pods -l app=backend[0m
+NAME                      READY   STATUS    RESTARTS   AGE
+backend-99cb554b4-nxv5p   1/1     Running   0          49m
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml history backend[0m
+REVISION	UPDATED                 	STATUS    	CHART        	APP VERSION	DESCRIPTION     
+1       	Sat Nov  7 14:10:32 2026	superseded	backend-0.1.0	0.0.1      	Install complete
+2       	Sat Nov  7 14:10:59 2026	superseded	backend-0.1.0	0.0.1      	Upgrade complete
+3       	Sat Nov  7 14:11:15 2026	deployed  	backend-0.1.0	0.0.1      	Rollback to 1   
+[0;90m(exit 0)[0m
+[1;36m$ git status --short infra/helm; grep replicaCount infra/helm/backend/values-local.yaml[0m
+replicaCount: 1
+[0;90m(exit 0)[0m

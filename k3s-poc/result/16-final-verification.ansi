@@ -1,0 +1,69 @@
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml list[0m
+NAME    	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART         	APP VERSION
+backend 	default  	3       	2026-11-07 14:11:15.624289569 +0000 UTC	deployed	backend-0.1.0 	0.0.1      
+postgres	default  	1       	2026-11-07 14:10:25.790984448 +0000 UTC	deployed	postgres-0.1.0	17         
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml get manifest backend | grep -E '^kind:|^  name:'[0m
+kind: Service
+  name: backend
+kind: Deployment
+  name: backend
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml get manifest postgres | grep -E '^kind:|^  name:'[0m
+kind: Service
+  name: postgres-headless
+kind: Service
+  name: postgres
+kind: StatefulSet
+  name: postgres
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get all[0m
+NAME                          READY   STATUS    RESTARTS   AGE
+pod/backend-99cb554b4-nxv5p   1/1     Running   0          52m
+pod/postgres-0                1/1     Running   0          109m
+
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/backend             ClusterIP   10.43.244.68    <none>        80/TCP     127m
+service/kubernetes          ClusterIP   10.43.0.1       <none>        443/TCP    164m
+service/postgres            ClusterIP   10.43.234.165   <none>        5432/TCP   82m
+service/postgres-headless   ClusterIP   None            <none>        5432/TCP   82m
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/backend   1/1     1            1           127m
+
+NAME                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/backend-6b44f94c4b   0         0         0       88m
+replicaset.apps/backend-7bc9dd59b5   0         0         0       92m
+replicaset.apps/backend-85b8f485d5   0         0         0       127m
+replicaset.apps/backend-85fc8c4d5f   0         0         0       82m
+replicaset.apps/backend-99cb554b4    1         1         1       52m
+
+NAME                        READY   AGE
+statefulset.apps/postgres   1/1     109m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pvc[0m
+NAME                       STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+postgres-data-postgres-0   Bound    pvc-ea59a811-2ac5-4bac-8ec1-b942bb32cfc5   5Gi        RWO            local-path     <unset>                 109m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl rollout status deployment/backend[0m
+deployment "backend" successfully rolled out
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl rollout status statefulset/postgres[0m
+partitioned roll out complete: 1 new pods have been updated...
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pvc postgres-data-postgres-0 -o custom-columns=NAME:.metadata.name,UID:.metadata.uid,STATUS:.status.phase[0m
+NAME                       UID                                    STATUS
+postgres-data-postgres-0   ea59a811-2ac5-4bac-8ec1-b942bb32cfc5   Bound
+[0;90m(exit 0)[0m
+[1;36m$ git ls-files infra[0m
+infra/.env.example
+infra/helm/backend/Chart.yaml
+infra/helm/backend/templates/deployment.yaml
+infra/helm/backend/templates/service.yaml
+infra/helm/backend/values-local.yaml
+infra/helm/backend/values.yaml
+infra/helm/postgres/Chart.yaml
+infra/helm/postgres/templates/service.yaml
+infra/helm/postgres/templates/statefulset.yaml
+infra/helm/postgres/values.yaml
+[0;90m(exit 0)[0m
