@@ -1,0 +1,52 @@
+[1;36m$ sudo k3s kubectl get deploy,sts,svc,pvc[0m
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/backend   1/1     1            1           123m
+
+NAME                        READY   AGE
+statefulset.apps/postgres   1/1     106m
+
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/backend             ClusterIP   10.43.244.68    <none>        80/TCP     123m
+service/kubernetes          ClusterIP   10.43.0.1       <none>        443/TCP    161m
+service/postgres            ClusterIP   10.43.234.165   <none>        5432/TCP   79m
+service/postgres-headless   ClusterIP   None            <none>        5432/TCP   79m
+
+NAME                                             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/postgres-data-postgres-0   Bound    pvc-ea59a811-2ac5-4bac-8ec1-b942bb32cfc5   5Gi        RWO            local-path     <unset>                 106m
+[0;90m(exit 0)[0m
+[1;36m$ curl -i http://localhost:8080/actuator/health/liveness[0m
+HTTP/1.1 200 
+[1mContent-Type[0m: application/vnd.spring-boot.actuator.v3+json
+[1mTransfer-Encoding[0m: chunked
+[1mDate[0m: Sat, 07 Nov 2026 14:10:46 GMT
+
+{"status":"UP"}[0;90m(exit 0)[0m
+[1;36m$ curl -i http://localhost:8080/actuator/health/readiness[0m
+HTTP/1.1 200 
+[1mContent-Type[0m: application/vnd.spring-boot.actuator.v3+json
+[1mTransfer-Encoding[0m: chunked
+[1mDate[0m: Sat, 07 Nov 2026 14:10:46 GMT
+
+{"status":"UP"}[0;90m(exit 0)[0m
+[1;36m$ curl -i -X POST http://localhost:8080/api/users -H 'Content-Type: application/json' -d '{"name":"HelmTest"}'[0m
+HTTP/1.1 200 
+[1mContent-Type[0m: application/json
+[1mContent-Length[0m: 26
+[1mDate[0m: Sat, 07 Nov 2026 14:10:46 GMT
+
+{"id":2,"name":"HelmTest"}[0;90m(exit 0)[0m
+[1;36m$ curl -i http://localhost:8080/api/users[0m
+HTTP/1.1 200 
+[1mContent-Type[0m: application/json
+[1mContent-Length[0m: 52
+[1mDate[0m: Sat, 07 Nov 2026 14:10:46 GMT
+
+[{"id":1,"name":"Alice"},{"id":2,"name":"HelmTest"}][0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl exec postgres-0 -- psql -U app -d appdb -c 'SELECT * FROM app_users;'[0m
+ id |   name   
+----+----------
+  1 | Alice
+  2 | HelmTest
+(2 rows)
+
+[0;90m(exit 0)[0m
