@@ -1,0 +1,42 @@
+[1;36m$ find infra -type f | sort[0m
+infra/.env.example
+infra/helm/backend/Chart.yaml
+infra/helm/backend/templates/deployment.yaml
+infra/helm/backend/templates/service.yaml
+infra/helm/backend/values-local.yaml
+infra/helm/backend/values.yaml
+infra/helm/postgres/Chart.yaml
+infra/helm/postgres/templates/service.yaml
+infra/helm/postgres/templates/statefulset.yaml
+infra/helm/postgres/values.yaml
+[0;90m(exit 0)[0m
+
+[1;36m$ mkdir -p infra/charts infra/environments/local[0m
+[0;90m(exit 0)[0m
+
+[1;36m$ git mv infra/helm/backend infra/charts/spring-app && git mv infra/helm/postgres infra/charts/postgres[0m
+[0;90m(exit 0)[0m
+
+[1;36m$ git mv infra/charts/spring-app/values-local.yaml infra/environments/local/backend.yaml[0m
+[0;90m(exit 0)[0m
+
+[1;36m$ find infra -type f | sort[0m
+infra/charts/postgres/Chart.yaml
+infra/charts/postgres/templates/service.yaml
+infra/charts/postgres/templates/statefulset.yaml
+infra/charts/postgres/values.yaml
+infra/charts/spring-app/Chart.yaml
+infra/charts/spring-app/templates/deployment.yaml
+infra/charts/spring-app/templates/service.yaml
+infra/charts/spring-app/values.yaml
+infra/.env.example
+infra/environments/local/backend.yaml
+[0;90m(exit 0)[0m
+
+[1;36m$ helm template backend infra/charts/spring-app -f infra/environments/local/backend.yaml | diff -u /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/backend-before.yaml - ; true[0m
+[0;90m(exit 0)[0m
+
+[1;36m$ helm template postgres infra/charts/postgres | diff -u /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/postgres-before.yaml - && echo 'postgres 렌더링 동일'[0m
+postgres 렌더링 동일
+[0;90m(exit 0)[0m
+
