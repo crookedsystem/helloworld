@@ -89,7 +89,8 @@ spec:
           #
           # 나중에 GHCR을 사용한다면 다음처럼 변경 가능
           # image: ghcr.io/사용자명/k3s-demo-backend:v1
-          image: k3s-demo-backend:v2
+          # Health Check 기능이 추가된 이미지
+          image: k3s-demo-backend:v3
 
           # 컨테이너 이미지를 가져오는 정책
           #
@@ -116,7 +117,9 @@ spec:
             # - containerPort를 선언한다고 외부 포트가 열리는 것은 아님
             # - 실제 프로세스가 8080 포트에서 수신하고 있어야 함
             # - Service의 targetPort와 연결됨
-            - containerPort: 8080
+            # name을 http로 지정하면 아래 Probe에서 포트 번호 대신 이름으로 참조 가능
+            - name: http
+              containerPort: 8080
               protocol: TCP
 
           # Spring Boot에 DB 연결 정보를 환경변수로 전달
@@ -135,3 +138,59 @@ spec:
                 secretKeyRef:
                   name: postgres-auth
                   key: POSTGRES_PASSWORD
+
+          # Startup Probe
+          # Spring Boot 시작이 완료될 때까지 기다림
+          # 성공 전에는 readiness/liveness 검사를 시작하지 않음
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+
+            # 5초마다 검사, 최대 30회 실패 허용
+            # 대략 150초의 시작 유예 구간
+            periodSeconds: 5
+            failureThreshold: 30
+            timeoutSeconds: 2
+
+          # Readiness Probe
+          # 실제 API 요청을 받을 준비가 되었는지 확인
+          # 실패하면 Service의 정상 트래픽 대상에서 제외
+          # Pod 자체는 계속 실행
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 2
+
+          # Liveness Probe
+          # 애플리케이션이 정상 동작 가능한 상태인지 확인
+          # 3회 연속 실패하면 컨테이너 재시작
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 2
+
+          # 리소스 관리
+          resources:
+            requests:
+              # 스케줄링 시 필요한 CPU 용량
+              # 250m = 0.25 CPU
+              cpu: 250m
+
+              # 스케줄링 시 필요한 메모리
+              memory: 512Mi
+
+            limits:
+              # CPU 사용량 상한 (1 CPU)
+              cpu: "1"
+
+              # 메모리 상한. 초과 시 OOMKilled 가능
+              memory: 1Gi
