@@ -1,0 +1,113 @@
+[1;36m$ git diff -- infra/charts/spring-app[0m
+diff --git a/k3s-poc/infra/charts/spring-app/Chart.yaml b/k3s-poc/infra/charts/spring-app/Chart.yaml
+index 351c93f..db57438 100644
+--- a/k3s-poc/infra/charts/spring-app/Chart.yaml
++++ b/k3s-poc/infra/charts/spring-app/Chart.yaml
+@@ -1,7 +1,7 @@
+ apiVersion: v2
+ 
+-name: backend
+-description: Spring Boot Backend Helm Chart
++name: spring-app
++description: Reusable Spring Boot Application Chart
+ type: application
+ 
+ # Helm Chart 버전
+diff --git a/k3s-poc/infra/charts/spring-app/templates/deployment.yaml b/k3s-poc/infra/charts/spring-app/templates/deployment.yaml
+index 3d3a22f..fedeb45 100644
+--- a/k3s-poc/infra/charts/spring-app/templates/deployment.yaml
++++ b/k3s-poc/infra/charts/spring-app/templates/deployment.yaml
+@@ -38,16 +38,16 @@ spec:
+ 
+           env:
+             - name: DB_URL
+-              value: {{ .Values.database.url | quote }}
++              value: "jdbc:postgresql://{{ .Values.global.database.host }}:{{ .Values.global.database.port }}/{{ .Values.global.database.name }}"
+ 
+             - name: DB_USERNAME
+-              value: {{ .Values.database.username | quote }}
++              value: {{ .Values.global.database.username | quote }}
+ 
+             - name: DB_PASSWORD
+               valueFrom:
+                 secretKeyRef:
+-                  name: {{ .Values.database.existingSecret | quote }}
+-                  key: {{ .Values.database.passwordKey | quote }}
++                  name: {{ .Values.global.database.existingSecret | quote }}
++                  key: {{ .Values.global.database.passwordKey | quote }}
+ 
+           startupProbe:
+             httpGet:
+diff --git a/k3s-poc/infra/charts/spring-app/values.yaml b/k3s-poc/infra/charts/spring-app/values.yaml
+index d68c977..0af185f 100644
+--- a/k3s-poc/infra/charts/spring-app/values.yaml
++++ b/k3s-poc/infra/charts/spring-app/values.yaml
+@@ -2,8 +2,8 @@
+ replicaCount: 1
+ 
+ image:
+-  repository: k3s-demo-backend
+-  tag: v3
++  repository: ""
++  tag: ""
+   pullPolicy: IfNotPresent
+ 
+ service:
+@@ -11,14 +11,6 @@ service:
+   port: 80
+   targetPort: 8080
+ 
+-database:
+-  url: jdbc:postgresql://postgres:5432/appdb
+-  username: app
+-
+-  # 비밀번호는 기존 Secret 참조
+-  existingSecret: postgres-auth
+-  passwordKey: POSTGRES_PASSWORD
+-
+ probes:
+   startup:
+     path: /actuator/health/liveness
+[0;90m(exit 0)[0m
+
+[1;36m$ helm lint infra/charts/spring-app -f infra/environments/local/platform.yaml -f infra/environments/local/backend.yaml[0m
+==> Linting infra/charts/spring-app
+[INFO] Chart.yaml: icon is recommended
+
+1 chart(s) linted, 0 chart(s) failed
+[0;90m(exit 0)[0m
+
+[1;36m$ helm template backend infra/charts/spring-app -f infra/environments/local/platform.yaml -f infra/environments/local/backend.yaml > /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/backend-after.yaml; grep -nE 'image:|DB_URL|jdbc|name: (DB_|postgres-auth)|key: POSTGRES|app: backend' /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/backend-after.yaml[0m
+11:    app: backend
+19:    app: backend
+36:    app: backend
+46:      app: backend
+51:        app: backend
+57:          image: "k3s-demo-backend:v3"
+66:            - name: DB_URL
+67:              value: "jdbc:postgresql://postgres:5432/appdb"
+69:            - name: DB_USERNAME
+72:            - name: DB_PASSWORD
+[0;90m(exit 0)[0m
+
+[1;36m$ diff -u /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/backend-before.yaml /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/backend-after.yaml[0m
+--- /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/backend-before.yaml	2026-11-07 14:39:21.255301720 +0000
++++ /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/backend-after.yaml	2026-11-07 14:53:49.271564937 +0000
+@@ -1,5 +1,5 @@
+ ---
+-# Source: backend/templates/service.yaml
++# Source: spring-app/templates/service.yaml
+ apiVersion: v1
+ kind: Service
+ 
+@@ -23,7 +23,7 @@
+       targetPort: 8080
+       protocol: TCP
+ ---
+-# Source: backend/templates/deployment.yaml
++# Source: spring-app/templates/deployment.yaml
+ apiVersion: apps/v1
+ kind: Deployment
+ 
+[0;90m(exit 1)[0m
+
