@@ -89,7 +89,7 @@ spec:
           #
           # 나중에 GHCR을 사용한다면 다음처럼 변경 가능
           # image: ghcr.io/사용자명/k3s-demo-backend:v1
-          image: k3s-demo-backend:v1
+          image: k3s-demo-backend:v2
 
           # 컨테이너 이미지를 가져오는 정책
           #
@@ -118,3 +118,20 @@ spec:
             # - Service의 targetPort와 연결됨
             - containerPort: 8080
               protocol: TCP
+
+          # Spring Boot에 DB 연결 정보를 환경변수로 전달
+          env:
+            # k3s 내부에서는 postgres Service 이름으로 DB에 접근
+            - name: DB_URL
+              value: jdbc:postgresql://postgres:5432/appdb
+
+            - name: DB_USERNAME
+              value: app
+
+            # PostgreSQL StatefulSet과 동일한 Secret 사용
+            # 환경변수로 주입된 Secret은 변경해도 자동 반영되지 않으므로 Pod 재시작이 필요
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-auth
+                  key: POSTGRES_PASSWORD
