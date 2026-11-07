@@ -1,0 +1,120 @@
+# Kubernetes에서 어떤 API를 사용할지 지정
+# apps/v1: Deployment, StatefulSet, DaemonSet 등을 관리하는 API 그룹
+apiVersion: apps/v1
+
+# 생성할 Kubernetes 리소스 종류
+# Deployment: Pod의 생성, 복제본 수 유지, 업데이트, 복구 등을 관리
+#
+# Deployment → ReplicaSet → Pod → Container 구조로 동작
+#
+# - Deployment: 원하는 상태(복제본 수, 이미지 버전 등)를 선언
+# - ReplicaSet: 지정된 개수의 Pod가 유지되도록 관리
+# - Pod: 하나 이상의 컨테이너가 실행되는 최소 배포 단위
+# - Container: 실제 Spring Boot 애플리케이션이 실행되는 프로세스 환경
+#
+# 다른 주요 Workload 종류:
+# - StatefulSet: 고정된 Pod 식별자와 개별 영속 스토리지가 필요한 앱 (DB 등)
+# - DaemonSet: 대상 노드마다 Pod를 실행 (로그 수집기, 모니터링 에이전트)
+# - Job: 완료를 목표로 실행하는 일회성 작업
+# - CronJob: 정해진 시간에 Job을 생성하는 스케줄 작업
+kind: Deployment
+
+# Deployment 리소스 자체의 메타데이터
+metadata:
+  # Deployment의 이름
+  # kubectl get deployment backend 등으로 조회할 때 사용
+  name: backend
+
+  # Deployment 리소스에 부여하는 라벨
+  # 라벨은 리소스 검색, 필터링, 그룹화에 사용하는 key-value 데이터
+  # kubectl get deployments -l app=backend 등으로 조회 가능
+  #
+  # 주의: 여기의 labels는 Deployment 자체의 라벨이며,
+  # 실제 Pod의 라벨은 아래 template.metadata.labels에서 지정
+  labels:
+    app: backend
+
+# Deployment가 유지해야 할 목표 상태
+spec:
+  # 유지할 Pod 개수
+  # 1이면 Spring Boot Pod를 항상 1개 유지하려고 시도
+  #
+  # 예:
+  # - Pod가 비정상 종료되거나 삭제되면 새 Pod를 생성
+  # - replicas: 3으로 변경하면 Pod 3개를 유지
+  # - replicas: 0이면 Pod를 실행하지 않음
+  #
+  # 단, Pod가 3개여도 단일 노드라면 물리 서버 장애에 대한 이중화는 없음
+  replicas: 1
+
+  # Deployment가 관리할 Pod를 구분하는 조건
+  # Deployment의 ReplicaSet은 이 라벨 조건에 맞는 Pod를 관리
+  #
+  # 주의:
+  # - 아래 template.metadata.labels와 일치해야 함
+  # - selector는 Deployment 생성 후 일반적으로 변경할 수 없음
+  selector:
+    matchLabels:
+      app: backend
+
+  # Deployment가 생성할 Pod의 설계도(Pod Template)
+  # replicas 수만큼 이 템플릿에 따라 Pod가 생성됨
+  template:
+    # 실제 생성되는 Pod에 부여할 메타데이터
+    metadata:
+      labels:
+        # 이 라벨은 두 곳에서 사용됨
+        #
+        # 1. Deployment의 selector가 관리할 Pod를 식별
+        # 2. Service의 selector가 트래픽을 전달할 Pod를 식별
+        #
+        # 즉, Deployment와 Service를 연결하는 중요한 값
+        app: backend
+
+    # Pod 내부에서 실행할 컨테이너와 실행 설정
+    spec:
+      # Pod 안에 실행할 컨테이너 목록
+      # 하나의 Pod에 여러 컨테이너를 정의할 수 있음
+      # 같은 Pod의 컨테이너들은 네트워크 네임스페이스를 공유하며
+      # localhost를 통해 서로 통신할 수 있음
+      containers:
+        # 컨테이너 이름
+        # Pod 내부에서 컨테이너를 식별할 때 사용
+        - name: backend
+
+          # 실행할 컨테이너 이미지
+          # 현재 k3s의 containerd에 직접 등록한 로컬 이미지를 사용
+          #
+          # docker build → docker save → k3s ctr images import
+          #
+          # 나중에 GHCR을 사용한다면 다음처럼 변경 가능
+          # image: ghcr.io/사용자명/k3s-demo-backend:v1
+          image: k3s-demo-backend:v1
+
+          # 컨테이너 이미지를 가져오는 정책
+          #
+          # Always:
+          #   컨테이너 시작 시 레지스트리에서 이미지 확인을 시도
+          #   동일한 이미지가 로컬에 있으면 레이어 재사용 가능
+          #
+          # IfNotPresent:
+          #   노드에 이미지가 없을 때만 레지스트리에서 다운로드
+          #
+          # Never:
+          #   레지스트리에서 다운로드하지 않음
+          #   노드에 이미지가 반드시 존재해야 함
+          #   이미지가 없다면 컨테이너 시작 실패
+          #
+          # 현재는 로컬 학습용이므로 Never 사용
+          imagePullPolicy: Never
+
+          # 컨테이너가 사용하는 네트워크 포트 정보
+          ports:
+            # Spring Boot가 실제로 요청을 수신하는 포트
+            #
+            # 주의:
+            # - containerPort를 선언한다고 외부 포트가 열리는 것은 아님
+            # - 실제 프로세스가 8080 포트에서 수신하고 있어야 함
+            # - Service의 targetPort와 연결됨
+            - containerPort: 8080
+              protocol: TCP
