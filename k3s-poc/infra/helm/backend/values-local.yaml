@@ -1,0 +1,9 @@
+# 현재 crookedbot 단일 노드 환경
+replicaCount: 1
+
+image:
+  repository: k3s-demo-backend
+  tag: v3
+
+  # 기존 containerd에 등록된 이미지 사용
+  pullPolicy: Never
