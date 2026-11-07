@@ -5,6 +5,9 @@ kind: Service
 metadata:
   name: postgres-headless
 
+  labels:
+    app: postgres
+
 spec:
   clusterIP: None
 
@@ -14,7 +17,7 @@ spec:
   ports:
     - name: postgres
       port: {{ .Values.service.port }}
-      targetPort: 5432
+      targetPort: postgres
       protocol: TCP
 
 ---
@@ -25,6 +28,9 @@ kind: Service
 metadata:
   name: postgres
 
+  labels:
+    app: postgres
+
 spec:
   type: ClusterIP
 
@@ -34,5 +40,5 @@ spec:
   ports:
     - name: postgres
       port: {{ .Values.service.port }}
-      targetPort: 5432
+      targetPort: postgres
       protocol: TCP
