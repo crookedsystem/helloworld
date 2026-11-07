@@ -5,13 +5,6 @@ image:
   tag: "17"
   pullPolicy: IfNotPresent
 
-database:
-  name: appdb
-  username: app
-
-  existingSecret: postgres-auth
-  passwordKey: POSTGRES_PASSWORD
-
 service:
   port: 5432
 
