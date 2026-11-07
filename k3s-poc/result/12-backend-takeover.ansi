@@ -1,0 +1,35 @@
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml install backend ./infra/helm/backend --namespace default -f ./infra/helm/backend/values-local.yaml --take-ownership --wait --timeout 180s[0m
+NAME: backend
+LAST DEPLOYED: Sat Nov  7 14:10:32 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml status backend[0m
+NAME: backend
+LAST DEPLOYED: Sat Nov  7 14:10:32 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get deployment backend -o jsonpath='{.metadata.annotations.meta\.helm\.sh/release-name}{"\n"}'[0m
+backend
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get svc backend -o jsonpath='{.metadata.annotations.meta\.helm\.sh/release-name}{"\n"}'[0m
+backend
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl rollout status deployment/backend --timeout=180s[0m
+deployment "backend" successfully rolled out
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pods -o wide[0m
+NAME                      READY   STATUS    RESTARTS   AGE    IP           NODE         NOMINATED NODE   READINESS GATES
+backend-99cb554b4-nxv5p   1/1     Running   0          48m    10.42.0.16   crookedbot   <none>           <none>
+postgres-0                1/1     Running   0          105m   10.42.0.12   crookedbot   <none>           <none>
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml list[0m
+NAME    	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART         	APP VERSION
+backend 	default  	1       	2026-11-07 14:10:32.521620174 +0000 UTC	deployed	backend-0.1.0 	0.0.1      
+postgres	default  	1       	2026-11-07 14:10:25.790984448 +0000 UTC	deployed	postgres-0.1.0	17         
+[0;90m(exit 0)[0m
