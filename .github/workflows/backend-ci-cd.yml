@@ -1,10 +1,10 @@
 # Backend CI/CD 파이프라인 (학습용 주석 포함)
 #
 # 전체 흐름
-#   main 에 backend 코드 반영
+#   feat/k3s-poc 에 backend 코드 반영
 #     → Gradle 테스트 + bootJar
 #     → Docker 이미지 빌드 후 GHCR 에 Push (태그 = Git Commit SHA)
-#     → infra/environments/local/backend.yaml 의 image tag 를 같은 SHA 로 수정해 main 에 Commit
+#     → infra/environments/local/backend.yaml 의 image tag 를 같은 SHA 로 수정해 같은 브랜치에 Commit
 #     → Argo CD 가 그 Commit 을 감지해 k3s 에 배포 (이 워크플로는 배포를 직접 하지 않는다)
 #
 # 역할 분담
@@ -16,7 +16,7 @@ name: Backend CI/CD
 on:
   push:
     branches:
-      - main
+      - feat/k3s-poc
     # 이 경로가 바뀔 때만 실행한다.
     # environments/local/backend.yaml 은 일부러 넣지 않았다. 봇이 태그를 Commit 해도
     # 워크플로가 다시 돌아 무한 반복되는 것을 막기 위해서다.
@@ -28,7 +28,7 @@ on:
   workflow_dispatch:
 
 # GITHUB_TOKEN 에 부여할 권한. 저장소 기본값이 read 여도 여기서 명시한 권한이 적용된다.
-#   contents: write → 이미지 태그를 바꾼 Commit 을 main 에 Push
+#   contents: write → 이미지 태그를 바꾼 Commit 을 실행된 브랜치에 Push
 #   packages: write → GHCR 에 이미지 Push
 permissions:
   contents: write
@@ -38,7 +38,7 @@ permissions:
 # 실행 중인 작업을 취소하면 이미지는 올라갔는데 태그 Commit 은 빠지는 상태가 생길 수 있어
 # cancel-in-progress 는 false 로 두고 대기열에 쌓는다.
 concurrency:
-  group: backend-deployment-main
+  group: backend-deployment
   cancel-in-progress: false
 
 jobs:
@@ -129,10 +129,10 @@ jobs:
           path.write_text(updated)
           PY
 
-      # 9. 변경된 배포 설정을 main 에 Commit/Push
+      # 9. 변경된 배포 설정을 실행된 브랜치(github.ref_name)에 Commit/Push
       #    GITHUB_TOKEN 으로 만든 Commit 은 다른 워크플로를 다시 트리거하지 않는다.
-      #    그 사이 main 이 앞서 나갔을 수 있어 rebase 후 Push 한다.
-      #    main 에 브랜치 보호가 생기면 이 Push 가 거부되므로, 그때는 PR 방식으로 바꿔야 한다.
+      #    그 사이 브랜치가 앞서 나갔을 수 있어 rebase 후 Push 한다.
+      #    브랜치 보호가 생기면 이 Push 가 거부되므로, 그때는 PR 방식으로 바꿔야 한다.
       - name: Commit GitOps update
         run: |
           git config user.name "github-actions[bot]"
@@ -147,5 +147,5 @@ jobs:
 
           git commit -m "chore(gitops): deploy backend ${{ github.sha }}"
 
-          git pull --rebase origin main
-          git push origin HEAD:main
+          git pull --rebase origin "${{ github.ref_name }}"
+          git push origin "HEAD:${{ github.ref_name }}"
