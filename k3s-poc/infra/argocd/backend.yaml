@@ -44,15 +44,13 @@ spec:
     server: https://kubernetes.default.svc
     namespace: default
 
-  # [자동 동기화] 처음에는 일부러 비워 두었다.
-  # 수동 Sync 로 기존 Helm 리소스와의 Diff 가 의도한 변경뿐인지 확인한 다음에만 활성화한다.
-  # 활성화하려면 아래 주석을 풀고 `kubectl apply -f` 를 다시 실행한다.
-  #
-  # syncPolicy:
-  #   automated:
-  #     # Git 에서 사라진 리소스를 자동 삭제하지 않는다.
-  #     prune: false
-  #     # 클러스터에서 손으로 바꾼 설정을 Git 상태로 되돌린다.
-  #     selfHeal: true
-  #   syncOptions:
-  #     - CreateNamespace=true
+  # [자동 동기화] 수동 Sync 로 기존 Helm 리소스와의 Diff 가 의도한 변경뿐인지 확인한 뒤 활성화했다.
+  # 이 파일을 바꾸면 `kubectl apply -f` 를 다시 실행해야 클러스터의 Application 에 반영된다.
+  syncPolicy:
+    automated:
+      # Git 에서 사라진 리소스를 자동 삭제하지 않는다.
+      prune: false
+      # 클러스터에서 손으로 바꾼 설정을 Git 상태로 되돌린다.
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
