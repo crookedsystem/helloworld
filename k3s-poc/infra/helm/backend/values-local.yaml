@@ -1,9 +1,21 @@
 # 현재 crookedbot 단일 노드 환경
 replicaCount: 1
 
+# [GitOps 배포 상태의 단일 원천]
+# GitHub Actions(.github/workflows/backend-ci-cd.yml)가 이미지를 GHCR에 올린 뒤
+# 아래 이미지 태그 줄만 빌드한 Git Commit SHA로 자동 갱신하고 main에 커밋한다.
+# Argo CD는 이 파일의 변경을 감지해서 k3s에 반영하므로, 사람이 태그를 직접 고치지 않는다.
+# (워크플로의 정규식이 "공백 2칸 + 태그 키" 형태의 줄을 정확히 1개만 찾으므로
+#  이 파일에 같은 들여쓰기의 다른 태그 키를 추가하면 워크플로가 실패한다.)
 image:
-  repository: k3s-demo-backend
+  # 로컬 containerd 이미지(k3s-demo-backend) 대신 GHCR 공개 이미지를 사용한다.
+  repository: ghcr.io/crookedsystem/helloworld-backend
+
+  # 최초 Actions 실행 전까지는 GHCR에 없는 임시 값이다.
+  # 첫 워크플로 실행이 성공하면 40자리 커밋 SHA로 교체되므로,
+  # 그 커밋이 main에 생기기 전에는 Argo CD Application을 생성하지 않는다.
   tag: v3
 
-  # 기존 containerd에 등록된 이미지 사용
-  pullPolicy: Never
+  # 노드에 이미지가 없을 때만 레지스트리에서 받는다.
+  # SHA 태그는 매번 고유하므로 이전 이미지를 잘못 재사용할 위험이 없다.
+  pullPolicy: IfNotPresent
