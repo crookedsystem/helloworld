@@ -23,7 +23,7 @@ spec:
     repoURL: https://github.com/crookedsystem/helloworld.git
 
     # 추적할 브랜치. Actions 가 이미지 태그를 Commit 하는 브랜치와 같아야 한다.
-    targetRevision: main
+    targetRevision: feat/k3s-poc
 
     # 저장소 루트 기준 Helm Chart 경로
     path: k3s-poc/infra/charts/spring-app
