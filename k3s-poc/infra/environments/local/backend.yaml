@@ -13,7 +13,7 @@ image:
   # 최초 Actions 실행 전까지는 GHCR에 없는 임시 값이다.
   # 첫 워크플로 실행이 성공하면 40자리 커밋 SHA로 교체되므로,
   # 그 커밋이 feat/k3s-poc에 생기기 전에는 Argo CD Application을 생성하지 않는다.
-  tag: v3
+  tag: "5aa41dbff9aa6cbfea5c025750e621c9a94e2cb7"
 
   # 노드에 이미지가 없을 때만 레지스트리에서 받는다.
   # SHA 태그는 매번 고유하므로 이전 이미지를 잘못 재사용할 위험이 없다.
