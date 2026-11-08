@@ -1,0 +1,23 @@
+[1;36m$ mkdir -p ~/argocd-migration-backup && chmod 700 ~/argocd-migration-backup[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get deployment backend -o yaml > ~/argocd-migration-backup/backend-deployment.yaml[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get service backend -o yaml > ~/argocd-migration-backup/backend-service.yaml[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml get values backend --all -o yaml > ~/argocd-migration-backup/backend-helm-values.yaml[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml get manifest backend > ~/argocd-migration-backup/backend-helm-manifest.yaml[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo chown -R $(id -u):$(id -g) ~/argocd-migration-backup && ls -la ~/argocd-migration-backup && grep -c "kind:" ~/argocd-migration-backup/*.yaml[0m
+total 28
+drwx------  2 crookedbot crookedbot 4096 Nov  8 04:53 .
+drwxr-x--- 59 crookedbot crookedbot 4096 Nov  8 04:53 ..
+-rw-rw-r--  1 crookedbot crookedbot 4251 Nov  8 04:53 backend-deployment.yaml
+-rw-rw-r--  1 crookedbot crookedbot 2218 Nov  8 04:53 backend-helm-manifest.yaml
+-rw-rw-r--  1 crookedbot crookedbot  727 Nov  8 04:53 backend-helm-values.yaml
+-rw-rw-r--  1 crookedbot crookedbot  944 Nov  8 04:53 backend-service.yaml
+/home/crookedbot/argocd-migration-backup/backend-deployment.yaml:1
+/home/crookedbot/argocd-migration-backup/backend-helm-manifest.yaml:2
+/home/crookedbot/argocd-migration-backup/backend-helm-values.yaml:0
+/home/crookedbot/argocd-migration-backup/backend-service.yaml:1
+[0;90m(exit 0)[0m

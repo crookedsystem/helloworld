@@ -1,0 +1,58 @@
+# Argo CD Application: backend (학습용 주석 포함)
+#
+# 이 파일은 "Git 의 어떤 Helm Chart 를 어느 클러스터에 배포할지"를 선언한다.
+# Git 에서 자동으로 적용되지는 않는다. 최초 1회 사람이 아래 명령으로 클러스터에 등록한다.
+#   sudo k3s kubectl apply -f k3s-poc/infra/argocd/backend.yaml
+# 이후에는 Argo CD 가 source 의 Git 변경을 감지해 배포 상태를 맞춘다.
+#
+# 주의: 이 리소스를 등록한 뒤에는 같은 리소스를 helm upgrade / rollback / uninstall 로
+#       다시 건드리지 않는다. 관리 주체가 Helm CLI 에서 Argo CD 로 넘어갔기 때문이다.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: backend
+  # Application 리소스는 Argo CD 가 설치된 argocd 네임스페이스에 둔다.
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    # Argo CD 가 읽을 Git 저장소 (공개 저장소라 별도 인증이 필요 없다)
+    repoURL: https://github.com/crookedsystem/helloworld.git
+
+    # 추적할 브랜치. Actions 가 이미지 태그를 Commit 하는 브랜치와 같아야 한다.
+    targetRevision: main
+
+    # 저장소 루트 기준 Helm Chart 경로
+    path: k3s-poc/infra/charts/spring-app
+
+    helm:
+      # 기존 Helm 릴리스 이름과 동일하게 유지해서 Deployment/Service 이름과 라벨이 바뀌지 않게 한다.
+      releaseName: backend
+
+      # Chart 기본 값인 values.yaml 은 자동으로 적용된다.
+      # 여기에는 환경별로 덮어쓸 파일만 적고, 경로는 Chart 디렉터리를 기준으로 해석된다.
+      # image.tag 는 이 파일에 들어 있고 Actions 가 갱신한다.
+      valueFiles:
+        - ../../environments/local/platform.yaml
+        - ../../environments/local/backend.yaml
+
+  destination:
+    # Argo CD 가 설치된 바로 이 클러스터
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  # [자동 동기화] 처음에는 일부러 비워 두었다.
+  # 수동 Sync 로 기존 Helm 리소스와의 Diff 가 의도한 변경뿐인지 확인한 다음에만 활성화한다.
+  # 활성화하려면 아래 주석을 풀고 `kubectl apply -f` 를 다시 실행한다.
+  #
+  # syncPolicy:
+  #   automated:
+  #     # Git 에서 사라진 리소스를 자동 삭제하지 않는다.
+  #     prune: false
+  #     # 클러스터에서 손으로 바꾼 설정을 Git 상태로 되돌린다.
+  #     selfHeal: true
+  #   syncOptions:
+  #     - CreateNamespace=true
