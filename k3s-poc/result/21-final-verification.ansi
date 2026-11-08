@@ -1,0 +1,58 @@
+[1;36m$ find infra -type f | sort[0m
+infra/charts/postgres/Chart.yaml
+infra/charts/postgres/templates/service.yaml
+infra/charts/postgres/templates/statefulset.yaml
+infra/charts/postgres/values.yaml
+infra/charts/spring-app/Chart.yaml
+infra/charts/spring-app/templates/deployment.yaml
+infra/charts/spring-app/templates/service.yaml
+infra/charts/spring-app/values.yaml
+infra/.env.example
+infra/environments/local/backend.yaml
+infra/environments/local/platform.yaml
+infra/environments/local/postgres.yaml
+[0;90m(exit 0)[0m
+
+[1;36m$ sudo -n helm --kubeconfig /etc/rancher/k3s/k3s.yaml get manifest backend | diff -u - /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/backend-after.yaml[0m
+--- -	2026-11-07 14:53:54.677319359 +0000
++++ /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/backend-after.yaml	2026-11-07 14:53:49.271564937 +0000
+@@ -1,5 +1,5 @@
+ ---
+-# Source: backend/templates/service.yaml
++# Source: spring-app/templates/service.yaml
+ apiVersion: v1
+ kind: Service
+ 
+@@ -23,7 +23,7 @@
+       targetPort: 8080
+       protocol: TCP
+ ---
+-# Source: backend/templates/deployment.yaml
++# Source: spring-app/templates/deployment.yaml
+ apiVersion: apps/v1
+ kind: Deployment
+ 
+@@ -107,4 +107,3 @@
+             requests:
+               cpu: 250m
+               memory: 512Mi
+-
+[0;90m(exit 1)[0m
+
+[1;36m$ sudo -n helm --kubeconfig /etc/rancher/k3s/k3s.yaml get manifest postgres | diff -u - /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/postgres-after.yaml && echo '실행 중인 postgres 릴리스와 동일'[0m
+--- -	2026-11-07 14:53:54.717909492 +0000
++++ /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-refactor-helmchart/604f6fd3-ef1a-494b-aad3-e1389dfd59c6/scratchpad/postgres-after.yaml	2026-11-07 14:53:49.377564603 +0000
+@@ -141,4 +141,3 @@
+         resources:
+           requests:
+             storage: 5Gi
+-
+[0;90m(exit 1)[0m
+
+[1;36m$ git log --oneline 7ed8e8b..HEAD[0m
+c2be82c refactor(k3s-poc): postgres 차트의 DB 설정을 global.database 참조로 변경
+5e4377b refactor(k3s-poc): spring-app 차트를 재사용 가능한 구조로 변경
+46090bd feat(k3s-poc): 환경별 values 파일에 공통 DB 설정 분리
+703d9f7 refactor(k3s-poc): Helm 차트 디렉터리를 charts/environments 구조로 이동
+[0;90m(exit 0)[0m
+

@@ -1,7 +1,7 @@
 apiVersion: v2
 
-name: backend
-description: Spring Boot Backend Helm Chart
+name: spring-app
+description: Reusable Spring Boot Application Chart
 type: application
 
 # Helm Chart 버전

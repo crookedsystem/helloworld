@@ -26,7 +26,7 @@ spec:
     targetRevision: main
 
     # 저장소 루트 기준 Helm Chart 경로
-    path: k3s-poc/infra/helm/backend
+    path: k3s-poc/infra/charts/spring-app
 
     helm:
       # 기존 Helm 릴리스 이름과 동일하게 유지해서 Deployment/Service 이름과 라벨이 바뀌지 않게 한다.
@@ -36,7 +36,8 @@ spec:
       # 여기에는 환경별로 덮어쓸 파일만 적고, 경로는 Chart 디렉터리를 기준으로 해석된다.
       # image.tag 는 이 파일에 들어 있고 Actions 가 갱신한다.
       valueFiles:
-        - values-local.yaml
+        - ../../environments/local/platform.yaml
+        - ../../environments/local/backend.yaml
 
   destination:
     # Argo CD 가 설치된 바로 이 클러스터

@@ -1,0 +1,11 @@
+replicaCount: 1
+
+image:
+  repository: postgres
+  tag: "17"
+  pullPolicy: IfNotPresent
+
+persistence:
+  storageClass: local-path
+  accessMode: ReadWriteOnce
+  size: 5Gi

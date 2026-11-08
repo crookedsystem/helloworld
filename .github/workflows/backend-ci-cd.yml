@@ -4,7 +4,7 @@
 #   main 에 backend 코드 반영
 #     → Gradle 테스트 + bootJar
 #     → Docker 이미지 빌드 후 GHCR 에 Push (태그 = Git Commit SHA)
-#     → infra/helm/backend/values-local.yaml 의 image tag 를 같은 SHA 로 수정해 main 에 Commit
+#     → infra/environments/local/backend.yaml 의 image tag 를 같은 SHA 로 수정해 main 에 Commit
 #     → Argo CD 가 그 Commit 을 감지해 k3s 에 배포 (이 워크플로는 배포를 직접 하지 않는다)
 #
 # 역할 분담
@@ -18,7 +18,7 @@ on:
     branches:
       - main
     # 이 경로가 바뀔 때만 실행한다.
-    # values-local.yaml 은 일부러 넣지 않았다. 봇이 태그를 Commit 해도
+    # environments/local/backend.yaml 은 일부러 넣지 않았다. 봇이 태그를 Commit 해도
     # 워크플로가 다시 돌아 무한 반복되는 것을 막기 위해서다.
     paths:
       - "k3s-poc/backend/**"
@@ -113,7 +113,7 @@ jobs:
           import re
           from pathlib import Path
 
-          path = Path("k3s-poc/infra/helm/backend/values-local.yaml")
+          path = Path("k3s-poc/infra/environments/local/backend.yaml")
           content = path.read_text()
 
           pattern = r"(?m)^(\s{2}tag:\s*).+$"
@@ -138,7 +138,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add k3s-poc/infra/helm/backend/values-local.yaml
+          git add k3s-poc/infra/environments/local/backend.yaml
 
           if git diff --cached --quiet; then
             echo "No changes"

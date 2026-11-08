@@ -2,22 +2,14 @@
 replicaCount: 1
 
 image:
-  repository: k3s-demo-backend
-  tag: v3
+  repository: ""
+  tag: ""
   pullPolicy: IfNotPresent
 
 service:
   type: ClusterIP
   port: 80
   targetPort: 8080
-
-database:
-  url: jdbc:postgresql://postgres:5432/appdb
-  username: app
-
-  # 비밀번호는 기존 Secret 참조
-  existingSecret: postgres-auth
-  passwordKey: POSTGRES_PASSWORD
 
 probes:
   startup:

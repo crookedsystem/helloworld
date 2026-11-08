@@ -1,0 +1,11 @@
+# 여러 Chart에서 공유하는 환경 설정
+global:
+  database:
+    host: postgres
+    port: 5432
+    name: appdb
+    username: app
+
+    # 기존 Kubernetes Secret 재사용
+    existingSecret: postgres-auth
+    passwordKey: POSTGRES_PASSWORD

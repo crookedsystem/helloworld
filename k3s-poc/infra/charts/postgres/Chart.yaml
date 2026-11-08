@@ -1,7 +1,7 @@
 apiVersion: v2
 
 name: postgres
-description: PostgreSQL StatefulSet Helm Chart
+description: PostgreSQL StatefulSet Chart
 type: application
 
 version: 0.1.0
