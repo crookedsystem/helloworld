@@ -1,0 +1,41 @@
+[1;36m$ gh api user --jq .login[0m
+crookedbot
+[0;90m(exit 0)[0m
+[1;36m$ gh repo view crookedsystem/helloworld --json nameWithOwner,visibility,defaultBranchRef --jq "[.nameWithOwner,.visibility,.defaultBranchRef.name]|@tsv"[0m
+crookedsystem/helloworld	PUBLIC	main
+[0;90m(exit 0)[0m
+[1;36m$ gh api repos/crookedsystem/helloworld/actions/permissions/workflow[0m
+[1;38m{[m
+  [1;34m"default_workflow_permissions"[m[1;38m:[m [32m"read"[m[1;38m,[m
+  [1;34m"can_approve_pull_request_reviews"[m[1;38m:[m [33mfalse[m
+[1;38m}[m
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml list[0m
+NAME    	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART         	APP VERSION
+backend 	default  	3       	2026-11-07 14:11:15.624289569 +0000 UTC	deployed	backend-0.1.0 	0.0.1      
+postgres	default  	1       	2026-11-07 14:10:25.790984448 +0000 UTC	deployed	postgres-0.1.0	17         
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get deployment,statefulset,service,pvc[0m
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/backend   1/1     1            1           16h
+
+NAME                        READY   AGE
+statefulset.apps/postgres   1/1     16h
+
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/backend             ClusterIP   10.43.244.68    <none>        80/TCP     16h
+service/kubernetes          ClusterIP   10.43.0.1       <none>        443/TCP    17h
+service/postgres            ClusterIP   10.43.234.165   <none>        5432/TCP   16h
+service/postgres-headless   ClusterIP   None            <none>        5432/TCP   16h
+
+NAME                                             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/postgres-data-postgres-0   Bound    pvc-ea59a811-2ac5-4bac-8ec1-b942bb32cfc5   5Gi        RWO            local-path     <unset>                 16h
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get deployment backend -o jsonpath="{.spec.template.spec.containers[0].image}{\"\n\"}"[0m
+k3s-demo-backend:v3
+[0;90m(exit 0)[0m
+[1;36m$ free -m | head -2; nproc[0m
+               total        used        free      shared  buff/cache   available
+Mem:           12288        5973        2739          29        3604        6314
+6
+[0;90m(exit 0)[0m

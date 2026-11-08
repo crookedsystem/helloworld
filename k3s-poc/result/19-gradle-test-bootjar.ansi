@@ -1,0 +1,39 @@
+[1;36m$ cd k3s-poc/backend && chmod +x gradlew && ./gradlew test bootJar --no-daemon --console=plain 2>&1 | tail -40; exit ${PIPESTATUS[0]}[0m
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.8.2/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :processResources
+> Task :processTestResources NO-SOURCE
+> Task :compileKotlin
+> Task :compileJava NO-SOURCE
+> Task :classes
+> Task :resolveMainClassName
+> Task :bootJar
+> Task :jar
+> Task :compileTestKotlin
+> Task :compileTestJava NO-SOURCE
+> Task :testClasses UP-TO-DATE
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-11-08T04:53:26.642Z  INFO 3355539 --- [backend] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-08T04:53:26.643Z  INFO 3355539 --- [backend] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-08T04:53:26.644Z  INFO 3355539 --- [backend] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+> Task :test
+
+BUILD SUCCESSFUL in 19s
+7 actionable tasks: 7 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.2/userguide/configuration_cache_enabling.html
+[0;90m(exit 0)[0m
+[1;36m$ ls -la k3s-poc/backend/build/libs/; python3 - <<PY
+import glob, xml.etree.ElementTree as ET
+t=f=e=s=0
+for p in glob.glob("k3s-poc/backend/build/test-results/test/*.xml"):
+    r=ET.parse(p).getroot(); t+=int(r.get("tests"));f+=int(r.get("failures"));e+=int(r.get("errors"));s+=int(r.get("skipped"))
+print("executed tests:",t,"failures:",f,"errors:",e,"skipped:",s)
+PY[0m
+total 57844
+drwxrwxr-x 2 crookedbot crookedbot     4096 Nov  8 04:53 .
+drwxrwxr-x 9 crookedbot crookedbot     4096 Nov  8 04:53 ..
+-rw-rw-r-- 1 crookedbot crookedbot 59208041 Nov  8 04:53 app.jar
+-rw-rw-r-- 1 crookedbot crookedbot    10627 Nov  8 04:53 backend-0.0.1-SNAPSHOT-plain.jar
+executed tests: 1 failures: 0 errors: 0 skipped: 0
+[0;90m(exit 0)[0m

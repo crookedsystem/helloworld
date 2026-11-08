@@ -1,0 +1,35 @@
+[1;36m$ sudo k3s kubectl rollout status deployment/argocd-server -n argocd --timeout=300s[0m
+Waiting for deployment "argocd-server" rollout to finish: 0 of 1 updated replicas are available...
+deployment "argocd-server" successfully rolled out
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl rollout status deployment/argocd-repo-server -n argocd --timeout=300s; sudo k3s kubectl rollout status statefulset/argocd-application-controller -n argocd --timeout=300s[0m
+deployment "argocd-repo-server" successfully rolled out
+partitioned roll out complete: 1 new pods have been updated...
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pods -n argocd[0m
+NAME                                                READY   STATUS    RESTARTS   AGE
+argocd-application-controller-0                     1/1     Running   0          108s
+argocd-applicationset-controller-794bb95c9d-wxgt4   1/1     Running   0          109s
+argocd-dex-server-66cf64bfcf-rgbpb                  1/1     Running   0          109s
+argocd-notifications-controller-5878c8d644-db52z    1/1     Running   0          109s
+argocd-redis-5869b7547-dxrzj                        1/1     Running   0          107s
+argocd-repo-server-7d55cc466b-shrpv                 1/1     Running   0          109s
+argocd-server-85b849c688-zc5n4                      1/1     Running   0          109s
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get deployment argocd-server -n argocd -o jsonpath="{.spec.template.spec.containers[0].image}{\"\n\"}"[0m
+quay.io/argoproj/argocd:v3.6.1
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get applications.argoproj.io -A 2>&1; sudo k3s kubectl get pods,pvc -n default[0m
+No resources found
+NAME                          READY   STATUS    RESTARTS   AGE
+pod/backend-99cb554b4-nxv5p   1/1     Running   0          15h
+pod/postgres-0                1/1     Running   0          16h
+
+NAME                                             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/postgres-data-postgres-0   Bound    pvc-ea59a811-2ac5-4bac-8ec1-b942bb32cfc5   5Gi        RWO            local-path     <unset>                 16h
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml list[0m
+NAME    	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART         	APP VERSION
+backend 	default  	3       	2026-11-07 14:11:15.624289569 +0000 UTC	deployed	backend-0.1.0 	0.0.1      
+postgres	default  	1       	2026-11-07 14:10:25.790984448 +0000 UTC	deployed	postgres-0.1.0	17         
+[0;90m(exit 0)[0m
