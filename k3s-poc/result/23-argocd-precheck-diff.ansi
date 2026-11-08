@@ -1,0 +1,72 @@
+[1;36m$ sudo k3s kubectl get applications.argoproj.io -A[0m
+No resources found
+[0;90m(exit 0)[0m
+[1;36m$ git ls-remote --heads origin main feat/k3s-poc[0m
+c3aaf7d2078441495ea9931808bc48913d966674	refs/heads/feat/k3s-poc
+1237750b4b64b84ab881c2d9c823ae648ee034f0	refs/heads/main
+[0;90m(exit 0)[0m
+[1;36m$ git ls-tree -r --name-only origin/main k3s-poc/infra | wc -l[0m
+0
+[0;90m(exit 0)[0m
+[1;36m$ git ls-tree -r --name-only origin/feat/k3s-poc k3s-poc/infra/charts/spring-app k3s-poc/infra/environments/local[0m
+k3s-poc/infra/charts/spring-app/Chart.yaml
+k3s-poc/infra/charts/spring-app/templates/deployment.yaml
+k3s-poc/infra/charts/spring-app/templates/service.yaml
+k3s-poc/infra/charts/spring-app/values.yaml
+k3s-poc/infra/environments/local/backend.yaml
+k3s-poc/infra/environments/local/platform.yaml
+k3s-poc/infra/environments/local/postgres.yaml
+[0;90m(exit 0)[0m
+[1;36m$ helm lint k3s-poc/infra/charts/spring-app -f k3s-poc/infra/environments/local/platform.yaml -f k3s-poc/infra/environments/local/backend.yaml[0m
+==> Linting k3s-poc/infra/charts/spring-app
+[INFO] Chart.yaml: icon is recommended
+
+1 chart(s) linted, 0 chart(s) failed
+[0;90m(exit 0)[0m
+[1;36m$ helm template backend k3s-poc/infra/charts/spring-app --namespace default -f k3s-poc/infra/environments/local/platform.yaml -f k3s-poc/infra/environments/local/backend.yaml | sudo k3s kubectl diff -f -[0m
+--- /tmp/LIVE-1154437147/apps.v1.Deployment.default.backend
++++ /tmp/MERGED-847297558/apps.v1.Deployment.default.backend
+@@ -8,7 +8,7 @@
+     meta.helm.sh/release-name: backend
+     meta.helm.sh/release-namespace: default
+   creationTimestamp: "2026-11-07T12:06:54Z"
+-  generation: 8
++  generation: 9
+   labels:
+     app: backend
+     app.kubernetes.io/managed-by: Helm
+@@ -46,8 +46,8 @@
+             secretKeyRef:
+               key: POSTGRES_PASSWORD
+               name: postgres-auth
+-        image: k3s-demo-backend:v3
+-        imagePullPolicy: Never
++        image: ghcr.io/crookedsystem/helloworld-backend:v3
++        imagePullPolicy: IfNotPresent
+         livenessProbe:
+           failureThreshold: 3
+           httpGet:
+[0;90m(exit 1)[0m
+[1;36m$ sudo k3s kubectl get deployment backend -n default -o jsonpath="{.spec.template.spec.containers[0].image}{\"\n\"}"[0m
+k3s-demo-backend:v3
+[0;90m(exit 0)[0m
+[1;36m$ grep -n "tag" k3s-poc/infra/environments/local/backend.yaml[0m
+16:  tag: v3
+[0;90m(exit 0)[0m
+[1;36m$ sed -n "8,14p" infra/environments/local/backend.yaml[0m
+#  이 파일에 같은 들여쓰기의 다른 태그 키를 추가하면 워크플로가 실패한다.)
+image:
+  # 로컬 containerd 이미지(k3s-demo-backend) 대신 GHCR 공개 이미지를 사용한다.
+  repository: ghcr.io/crookedsystem/helloworld-backend
+
+  # 최초 Actions 실행 전까지는 GHCR에 없는 임시 값이다.
+  # 첫 워크플로 실행이 성공하면 40자리 커밋 SHA로 교체되므로,
+[0;90m(exit 0)[0m
+[1;36m$ curl -s -o /dev/null -w "%{http_code}\n" "https://ghcr.io/token?scope=repository:crookedsystem/helloworld-backend:pull"; curl -s "https://ghcr.io/token?scope=repository:crookedsystem/helloworld-backend:pull" | head -c 120; echo[0m
+403
+{"errors":[{"code":"DENIED","message":"requested access to the resource is denied"}]}
+
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get secrets -n default --field-selector type=kubernetes.io/dockerconfigjson[0m
+No resources found in default namespace.
+[0;90m(exit 0)[0m
