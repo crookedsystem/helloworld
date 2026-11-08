@@ -1,0 +1,50 @@
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml install --help | grep take-ownership[0m
+      --take-ownership                             if set, install will ignore the check for helm annotations and take ownership of the existing resources
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml install postgres ./infra/helm/postgres --namespace default --take-ownership --wait --timeout 180s[0m
+NAME: postgres
+LAST DEPLOYED: Sat Nov  7 14:10:25 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+[0;90m(exit 0)[0m
+[1;36m$ sudo helm --kubeconfig /etc/rancher/k3s/k3s.yaml status postgres[0m
+NAME: postgres
+LAST DEPLOYED: Sat Nov  7 14:10:25 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get statefulset postgres -o jsonpath='{.metadata.annotations.meta\.helm\.sh/release-name}{"\n"}'[0m
+postgres
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get svc postgres -o jsonpath='{.metadata.annotations.meta\.helm\.sh/release-name}{"\n"}'[0m
+postgres
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pods,pvc,svc[0m
+NAME                          READY   STATUS    RESTARTS   AGE
+pod/backend-99cb554b4-nxv5p   1/1     Running   0          48m
+pod/postgres-0                1/1     Running   0          105m
+
+NAME                                             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/postgres-data-postgres-0   Bound    pvc-ea59a811-2ac5-4bac-8ec1-b942bb32cfc5   5Gi        RWO            local-path     <unset>                 105m
+
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/backend             ClusterIP   10.43.244.68    <none>        80/TCP     123m
+service/kubernetes          ClusterIP   10.43.0.1       <none>        443/TCP    161m
+service/postgres            ClusterIP   10.43.234.165   <none>        5432/TCP   79m
+service/postgres-headless   ClusterIP   None            <none>        5432/TCP   79m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl exec postgres-0 -- psql -U app -d appdb -c 'SELECT * FROM app_users;'[0m
+ id | name  
+----+-------
+  1 | Alice
+(1 row)
+
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pvc postgres-data-postgres-0 -o custom-columns=NAME:.metadata.name,UID:.metadata.uid,STATUS:.status.phase[0m
+NAME                       UID                                    STATUS
+postgres-data-postgres-0   ea59a811-2ac5-4bac-8ec1-b942bb32cfc5   Bound
+[0;90m(exit 0)[0m

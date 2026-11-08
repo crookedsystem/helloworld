@@ -1,0 +1,11 @@
+apiVersion: v2
+
+name: spring-app
+description: Reusable Spring Boot Application Chart
+type: application
+
+# Helm Chart 버전
+version: 0.1.0
+
+# 애플리케이션 버전 (정보용)
+appVersion: "0.0.1"

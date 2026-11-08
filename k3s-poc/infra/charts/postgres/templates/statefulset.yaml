@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: StatefulSet
+
+metadata:
+  # 기존 이름 유지
+  name: postgres
+
+  labels:
+    app: postgres
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+
+spec:
+  # 반드시 기존 Headless Service 이름 유지
+  serviceName: postgres-headless
+
+  replicas: {{ .Values.replicaCount }}
+
+  selector:
+    matchLabels:
+      app: postgres
+
+  # StatefulSet 삭제나 축소 시 PVC 유지
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+
+  template:
+    metadata:
+      labels:
+        app: postgres
+
+    spec:
+      containers:
+        - name: postgres
+
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.service.port }}
+
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.global.database.username | quote }}
+
+            - name: POSTGRES_DB
+              value: {{ .Values.global.database.name | quote }}
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.database.existingSecret | quote }}
+                  key: {{ .Values.global.database.passwordKey | quote }}
+
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U {{ .Values.global.database.username }} -d {{ .Values.global.database.name }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+
+          resources:
+{{ toYaml .Values.resources | nindent 12 }}
+
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+
+  # StatefulSet이 Pod별 PVC 생성
+  # 기존 postgres-data-postgres-0 PVC 재사용
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+
+      spec:
+        accessModes:
+          - {{ .Values.persistence.accessMode }}
+
+        storageClassName: {{ .Values.persistence.storageClass }}
+
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}

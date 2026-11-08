@@ -1,0 +1,27 @@
+[1;36m$ git ls-files infra/kubernetes[0m
+infra/kubernetes/apps/backend/deployment.yaml
+infra/kubernetes/apps/backend/service.yaml
+infra/kubernetes/databases/postgres/service.yaml
+infra/kubernetes/databases/postgres/statefulset.yaml
+[0;90m(exit 0)[0m
+[1;36m$ git rm infra/kubernetes/apps/backend/deployment.yaml infra/kubernetes/apps/backend/service.yaml infra/kubernetes/databases/postgres/statefulset.yaml infra/kubernetes/databases/postgres/service.yaml[0m
+rm 'k3s-poc/infra/kubernetes/apps/backend/deployment.yaml'
+rm 'k3s-poc/infra/kubernetes/apps/backend/service.yaml'
+rm 'k3s-poc/infra/kubernetes/databases/postgres/service.yaml'
+rm 'k3s-poc/infra/kubernetes/databases/postgres/statefulset.yaml'
+[0;90m(exit 0)[0m
+[1;36m$ rmdir infra/kubernetes/apps/backend infra/kubernetes/apps infra/kubernetes/databases/postgres infra/kubernetes/databases infra/kubernetes 2>/dev/null || true; ls infra[0m
+helm
+[0;90m(exit 0)[0m
+[1;36m$ git status --short . ; git diff --cached --stat[0m
+[32mD[m  infra/kubernetes/apps/backend/deployment.yaml
+[32mD[m  infra/kubernetes/apps/backend/service.yaml
+[32mD[m  infra/kubernetes/databases/postgres/service.yaml
+[32mD[m  infra/kubernetes/databases/postgres/statefulset.yaml
+[31m??[m result/15-remove-legacy-yaml.ansi
+ .../infra/kubernetes/apps/backend/deployment.yaml  | 196 [31m---------------------[m
+ k3s-poc/infra/kubernetes/apps/backend/service.yaml |  98 [31m-----------[m
+ .../kubernetes/databases/postgres/service.yaml     |  45 [31m-----[m
+ .../kubernetes/databases/postgres/statefulset.yaml | 102 [31m-----------[m
+ 4 files changed, 441 deletions(-)
+[0;90m(exit 0)[0m

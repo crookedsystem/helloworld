@@ -1,0 +1,66 @@
+[1;36m$ python3 -c "import yaml,sys; [yaml.safe_load(open(p)) for p in sys.argv[1:]]; print(\"YAML 문법 OK:\", sys.argv[1:])" .github/workflows/backend-ci-cd.yml k3s-poc/infra/argocd/backend.yaml k3s-poc/infra/helm/backend/values-local.yaml[0m
+YAML 문법 OK: ['.github/workflows/backend-ci-cd.yml', 'k3s-poc/infra/argocd/backend.yaml', 'k3s-poc/infra/helm/backend/values-local.yaml']
+[0;90m(exit 0)[0m
+[1;36m$ python3 /tmp/claude-1000/-home-crookedbot-Documents-helloworld-helloworld--worktrees-ops-argo-cd/7eeb153d-ecda-4325-a366-333048501b62/scratchpad/sim_tag_step.py[0m
+exit: 0 
+17c17
+<   tag: v3
+---
+>   tag: "0123456789abcdef0123456789abcdef01234567"
+
+[0;90m(exit 0)[0m
+[1;36m$ helm lint k3s-poc/infra/helm/backend -f k3s-poc/infra/helm/backend/values-local.yaml[0m
+==> Linting k3s-poc/infra/helm/backend
+[INFO] Chart.yaml: icon is recommended
+
+1 chart(s) linted, 0 chart(s) failed
+[0;90m(exit 0)[0m
+[1;36m$ helm template backend k3s-poc/infra/helm/backend -f k3s-poc/infra/helm/backend/values-local.yaml --namespace default | grep -n -E "^kind:|name: backend|image:|imagePullPolicy|app: backend|port:|path:|DB_"[0m
+4:kind: Service
+8:  name: backend
+11:    app: backend
+19:    app: backend
+22:    - port: 80
+28:kind: Deployment
+33:  name: backend
+36:    app: backend
+46:      app: backend
+51:        app: backend
+55:        - name: backend
+57:          image: "ghcr.io/crookedsystem/helloworld-backend:v3"
+58:          imagePullPolicy: IfNotPresent
+66:            - name: DB_URL
+69:            - name: DB_USERNAME
+72:            - name: DB_PASSWORD
+80:              path: /actuator/health/liveness
+81:              port: http
+88:              path: /actuator/health/readiness
+89:              port: http
+96:              path: /actuator/health/liveness
+97:              port: http
+[0;90m(exit 0)[0m
+[1;36m$ helm template backend k3s-poc/infra/helm/backend -f k3s-poc/infra/helm/backend/values-local.yaml --namespace default | sudo k3s kubectl diff -f - ; echo "diff exit(1=차이있음, 0=없음): $?"[0m
+--- /tmp/LIVE-215370650/apps.v1.Deployment.default.backend
++++ /tmp/MERGED-3648349718/apps.v1.Deployment.default.backend
+@@ -8,7 +8,7 @@
+     meta.helm.sh/release-name: backend
+     meta.helm.sh/release-namespace: default
+   creationTimestamp: "2026-11-07T12:06:54Z"
+-  generation: 8
++  generation: 9
+   labels:
+     app: backend
+     app.kubernetes.io/managed-by: Helm
+@@ -46,8 +46,8 @@
+             secretKeyRef:
+               key: POSTGRES_PASSWORD
+               name: postgres-auth
+-        image: k3s-demo-backend:v3
+-        imagePullPolicy: Never
++        image: ghcr.io/crookedsystem/helloworld-backend:v3
++        imagePullPolicy: IfNotPresent
+         livenessProbe:
+           failureThreshold: 3
+           httpGet:
+diff exit(1=차이있음, 0=없음): 1
+[0;90m(exit 0)[0m

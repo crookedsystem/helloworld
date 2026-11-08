@@ -1,0 +1,54 @@
+[1;36m$ BACKUP_DIR=/home/crookedbot/k3s-poc-backups/20261107-140914; mkdir -p /home/crookedbot/k3s-poc-backups/20261107-140914 && chmod 700 /home/crookedbot/k3s-poc-backups/20261107-140914 && ls -ld /home/crookedbot/k3s-poc-backups/20261107-140914[0m
+drwx------ 2 crookedbot crookedbot 4096 Nov  7 14:09 /home/crookedbot/k3s-poc-backups/20261107-140914
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get deployment backend -o yaml > /home/crookedbot/k3s-poc-backups/20261107-140914/backend-deployment.yaml[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get svc backend -o yaml > /home/crookedbot/k3s-poc-backups/20261107-140914/backend-service.yaml[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get statefulset postgres -o yaml > /home/crookedbot/k3s-poc-backups/20261107-140914/postgres-statefulset.yaml[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get svc postgres postgres-headless -o yaml > /home/crookedbot/k3s-poc-backups/20261107-140914/postgres-services.yaml[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl get pvc postgres-data-postgres-0 -o yaml > /home/crookedbot/k3s-poc-backups/20261107-140914/postgres-pvc.yaml[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl exec postgres-0 -- pg_dump -U app -d appdb -Fc > /home/crookedbot/k3s-poc-backups/20261107-140914/appdb.dump[0m
+[0;90m(exit 0)[0m
+[1;36m$ test -s /home/crookedbot/k3s-poc-backups/20261107-140914/appdb.dump && echo 'DB backup created' && ls -l /home/crookedbot/k3s-poc-backups/20261107-140914[0m
+DB backup created
+total 28
+-rw-rw-r-- 1 crookedbot crookedbot 2240 Nov  7 14:09 appdb.dump
+-rw-rw-r-- 1 crookedbot crookedbot 4129 Nov  7 14:09 backend-deployment.yaml
+-rw-rw-r-- 1 crookedbot crookedbot  795 Nov  7 14:09 backend-service.yaml
+-rw-rw-r-- 1 crookedbot crookedbot 1074 Nov  7 14:09 postgres-pvc.yaml
+-rw-rw-r-- 1 crookedbot crookedbot 2009 Nov  7 14:09 postgres-services.yaml
+-rw-rw-r-- 1 crookedbot crookedbot 3812 Nov  7 14:09 postgres-statefulset.yaml
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl exec -i postgres-0 -- pg_restore -l < /home/crookedbot/k3s-poc-backups/20261107-140914/appdb.dump[0m
+;
+; Archive created at 2026-11-07 14:09:15 UTC
+;     dbname: appdb
+;     TOC Entries: 9
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 17.11 (Debian 17.11-1.pgdg13+2)
+;     Dumped by pg_dump version: 17.11 (Debian 17.11-1.pgdg13+2)
+;
+;
+; Selected TOC Entries:
+;
+218; 1259 16390 TABLE public app_users app
+217; 1259 16389 SEQUENCE public app_users_id_seq app
+3419; 0 16390 TABLE DATA public app_users app
+3426; 0 0 SEQUENCE SET public app_users_id_seq app
+3272; 2606 16394 CONSTRAINT public app_users app_users_pkey app
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl exec postgres-0 -- psql -U app -d appdb -c 'SELECT * FROM app_users;'[0m
+ id | name  
+----+-------
+  1 | Alice
+(1 row)
+
+[0;90m(exit 0)[0m
