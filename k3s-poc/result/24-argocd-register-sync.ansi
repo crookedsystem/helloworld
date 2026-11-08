@@ -1,0 +1,59 @@
+[0;90m# Application 등록 직후(syncPolicy 없음) 세션에서 실행한 출력을 그대로 옮김[0m
+$ sudo k3s kubectl apply -f k3s-poc/infra/argocd/backend.yaml
+application.argoproj.io/backend created
+$ sudo k3s kubectl -n argocd exec argocd-application-controller-0 -- argocd app diff backend --core
+===== /Service default/backend ======
+4a5
+>     argocd.argoproj.io/tracking-id: backend:/Service:default/backend
+
+===== apps/Deployment default/backend ======
+4a5
+>     argocd.argoproj.io/tracking-id: backend:apps/Deployment:default/backend
+218,219c219,220
+<         image: k3s-demo-backend:v3
+<         imagePullPolicy: Never
+---
+>         image: ghcr.io/crookedsystem/helloworld-backend:5aa41dbff9aa6cbfea5c025750e621c9a94e2cb7
+>         imagePullPolicy: IfNotPresent
+$ sudo k3s kubectl -n argocd exec argocd-application-controller-0 -- argocd app sync backend --core
+Sync Policy:        Manual
+Sync Status:        Synced to feat/k3s-poc (dc4b722)
+Operation:          Sync
+Phase:              Succeeded
+Message:            successfully synced (all tasks run)
+[0;90m# 자동 동기화(syncPolicy) 적용 후 실행한 명령[0m
+[1;36m$ sudo k3s kubectl -n argocd get application backend -o jsonpath="{.spec.syncPolicy}{\"\n\"}sync={.status.sync.status} health={.status.health.status} rev={.status.sync.revision}{\"\n\"}"[0m
+{"automated":{"prune":false,"selfHeal":true},"syncOptions":["CreateNamespace=true"]}
+sync=Synced health=Healthy rev=dc4b7226ca632aecc26499ec791d6d3063c0e962
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl -n argocd exec argocd-application-controller-0 -- argocd app diff backend --core[0m
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl -n default get deploy,pods,svc[0m
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/backend   1/1     1            1           21h
+
+NAME                         READY   STATUS    RESTARTS        AGE
+pod/backend-95968c95-wp2vt   1/1     Running   0               62s
+pod/postgres-0               1/1     Running   1 (4h16m ago)   21h
+
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/backend             ClusterIP   10.43.244.68    <none>        80/TCP     21h
+service/kubernetes          ClusterIP   10.43.0.1       <none>        443/TCP    22h
+service/postgres            ClusterIP   10.43.234.165   <none>        5432/TCP   20h
+service/postgres-headless   ClusterIP   None            <none>        5432/TCP   20h
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl -n default get deploy backend -o jsonpath="{.spec.template.spec.containers[0].image}{\"\n\"}"[0m
+ghcr.io/crookedsystem/helloworld-backend:5aa41dbff9aa6cbfea5c025750e621c9a94e2cb7
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl -n default get events --field-selector reason=Pulled --no-headers[0m
+50s   Normal   Pulled   pod/backend-95968c95-wp2vt   Successfully pulled image "ghcr.io/crookedsystem/helloworld-backend:5aa41dbff9aa6cbfea5c025750e621c9a94e2cb7" in 11.497s (11.497s including waiting). Image size: 168704690 bytes.
+[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl -n default exec deploy/backend -- wget -qO- http://localhost:8080/actuator/health[0m
+{"groups":["liveness","readiness"],"status":"UP"}[0;90m(exit 0)[0m
+[1;36m$ sudo k3s kubectl -n default logs deploy/backend | grep -E "HikariPool|Database JDBC URL|Tomcat started"[0m
+2026-11-08T09:38:37.384Z  INFO 1 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-08T09:38:37.663Z  INFO 1 --- [backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@716e6fa5
+2026-11-08T09:38:37.665Z  INFO 1 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+	Database JDBC URL [jdbc:postgresql://postgres:5432/appdb]
+2026-11-08T09:38:41.031Z  INFO 1 --- [backend] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+[0;90m(exit 0)[0m
